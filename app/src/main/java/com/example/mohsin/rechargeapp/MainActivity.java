@@ -1,5 +1,7 @@
 package com.example.mohsin.rechargeapp;
 
+import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,6 +13,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +21,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.ErrorCodes;
+import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,10 +48,40 @@ public class MainActivity extends AppCompatActivity {
      */
     private ViewPager mViewPager;
 
+    // Choose an arbitrary request code value
+    private static final int RC_SIGN_IN = 123;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            // already signed in
+
+        } else {
+            // not signed in
+
+
+
+// ...
+
+            startActivityForResult(
+                    AuthUI.getInstance()
+                            .createSignInIntentBuilder()
+                            .setAvailableProviders(Arrays.asList(
+                                    new AuthUI.IdpConfig.GoogleBuilder().build(),
+                                    //  new AuthUI.IdpConfig.FacebookBuilder().build(),
+                                    new AuthUI.IdpConfig.EmailBuilder().build(),
+                                    //new AuthUI.IdpConfig.PhoneBuilder().build(),
+                                    new AuthUI.IdpConfig.AnonymousBuilder().build()))
+                            .setTosAndPrivacyPolicyUrls("https://superapp.example.com/terms-of-service.html",
+                                    "https://superapp.example.com/privacy-policy.html")
+                            .build(),
+                    RC_SIGN_IN);
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -55,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
         mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
         tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
-
+/*
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,9 +106,26 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        */
 
     }
 
+
+
+    public void onClickBtn(View v)
+    {
+        if (v.getId() == R.id.fab) {
+            AuthUI.getInstance()
+                    .signOut(this)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        public void onComplete(@NonNull Task<Void> task) {
+                            // user is now signed out
+                            startActivity(new Intent(MainActivity.this, MainActivity.class));
+                            finish();
+                        }
+                    });
+            }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
